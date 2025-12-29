@@ -1,0 +1,70 @@
+    
+
+const ID_SHEET = "1g37k36SqBQs3ujXEby7A0DP3EnQalHelfp27BTUoUKo";
+
+function copiarData() {
+  const ss = SpreadsheetApp.openById(ID_SHEET);
+  const hoja = ss.getSheets()[0];
+  const data = hoja.getDataRange().getValues();
+  Logger.log(data);
+}
+
+function enviarCorreosProspectos() {
+
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const data = sheet.getDataRange().getValues();
+
+  // Asumimos que la fila 1 es encabezado
+  for (let i = 1; i < data.length; i++) {
+
+    const nombre = data[i][0];
+    const email = data[i][1];
+    const telefono = data[i][3];
+    const estado = data[i][6]; // Columna ESTADO
+
+    if (estado !== 'ENVIADO') {
+
+      // correo del html
+      const htmlBody = `
+        <p>Hola <strong>${nombre}</strong>,</p>
+        <p>Gracias por contactarte con nosotros. Queremos ayudarte con tu negocio.</p>
+
+        <a href="https://www.fstnegocios.com"
+           style="background:#6a1b9a;color:white;padding:10px 15px;
+           text-decoration:none;border-radius:5px;margin-right:10px;">
+           Visitar Negocios
+        </a>
+
+        <a href="https://wa.me/51949638568"
+           style="background:#25D366;color:white;padding:10px 15px;
+           text-decoration:none;border-radius:5px;">
+           Chatear por WhatsApp
+        </a>
+      `;
+
+      GmailApp.sendEmail(
+        email,
+        'Gracias por tu interés',
+        '',
+        { htmlBody: htmlBody }
+      );
+
+      // Correo interno
+      const cuerpoInterno = `
+        Nuevo lead registrado:
+
+        Nombre: ${nombre}
+        Teléfono: ${telefono}
+      `;
+
+      GmailApp.sendEmail(
+        'freddysilvatuesta@gmail.com',
+        '¡Nuevo Lead Registrado en MYPE X!',
+        cuerpoInterno
+      );
+
+      // marcado como enviado
+      sheet.getRange(i + 1, 7).setValue('ENVIADO');
+    }
+  }
+}
